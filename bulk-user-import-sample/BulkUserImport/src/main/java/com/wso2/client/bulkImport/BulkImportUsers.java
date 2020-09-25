@@ -225,6 +225,11 @@ public class BulkImportUsers {
                     continue;
                 }
 
+                // Handle blank entries.
+                if (StringUtils.isBlank(csvClaimValueEntry.getValue()) && StringUtils.isBlank(csvClaimValueEntry.getValue())) {
+                    continue;
+                }
+
                 throw new UserAdminUserAdminException("User validation failed for the user : " + username + ". " +
                         "Expected value for the claim uri : " + csvClaimValueEntry.getKey() + ", is "
                         + csvClaimValueEntry.getValue() + ", but got " + userClaimsMap.get(csvClaimValueEntry.getKey()));
