@@ -168,7 +168,7 @@ public class BulkImportUsers {
             if (StringUtils.isNotBlank(line[i])) {
                 String[] claimStrings = line[i].split("=");
                 if (claimStrings.length != 2) {
-                    throw new IllegalArgumentException("Claims and values are not in correct format");
+                    throw new UserAdminUserAdminException("Wrong data set: " + line[0]);
                 } else {
                     String claimURI = claimStrings[0];
                     String claimValue = claimStrings[1];
