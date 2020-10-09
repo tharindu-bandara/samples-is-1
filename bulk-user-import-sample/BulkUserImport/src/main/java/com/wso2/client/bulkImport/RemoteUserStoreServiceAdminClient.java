@@ -59,4 +59,10 @@ public class RemoteUserStoreServiceAdminClient {
 
         return remoteUserStoreManagerServiceStub.getUserClaimValues(username, profileName);
     }
+
+    public void deleteUser(String username) throws RemoteException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+
+        remoteUserStoreManagerServiceStub.deleteUser(username);
+    }
 }

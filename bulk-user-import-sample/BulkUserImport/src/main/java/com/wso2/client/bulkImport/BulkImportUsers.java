@@ -119,9 +119,17 @@ public class BulkImportUsers {
                 while (userEntry != null && userEntry.length > 0) {
                     String userName = userEntry[0];
                     if (userName != null && !userName.isEmpty()) {
-                        userName = "PATRON/" + userName;
+                        if (StringUtils.isNotEmpty(System.getProperty("switchToDeleteMode"))) {
+                            userName = System.getProperty("userStore") + "/" + userName;
+                        } else {
+                            userName = "PATRON/" + userName;
+                        }
                         try {
-                            updateAccountCreatedTimeAndValidateUser(remoteUserStoreServiceAdminClient, userName, userEntry);
+                            if (Boolean.parseBoolean(System.getProperty("switchToDeleteMode"))) {
+                                deleteUser(remoteUserStoreServiceAdminClient, userName);
+                            } else {
+                                updateAccountCreatedTimeAndValidateUser(remoteUserStoreServiceAdminClient, userName, userEntry);
+                            }
                         } catch (UserAdminUserAdminException e) {
                             e.printStackTrace();
                             out.println("User where error occurred: \n" + line);
@@ -154,6 +162,16 @@ public class BulkImportUsers {
         out.println("Update created time and users verification process finished");
 
         login.logOut();
+    }
+
+    private static void deleteUser(RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient, String userName)
+            throws UserAdminUserAdminException {
+
+        try {
+            remoteUserStoreServiceAdminClient.deleteUser(userName);
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException | RemoteException e) {
+            throw new UserAdminUserAdminException("Unable to delete the user : " + userName, e);
+        }
     }
 
     private static void updateAccountCreatedTimeAndValidateUser(
