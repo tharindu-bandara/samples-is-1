@@ -35,6 +35,8 @@ class ClientGetPropertiesValues {
     private String remoteAddress = "";
     private String authUser = "";
     private String authPwd = "";
+    private String switchToDeleteMode = "";
+    private String switchToUpdateCreatedTimeAndVerificationMode = "";
     private InputStream inputStream;
 
     ClientGetPropertiesValues() throws IOException {
@@ -62,6 +64,10 @@ class ClientGetPropertiesValues {
             authUser = prop.getProperty("auth.user");
             authPwd = prop.getProperty("auth.pwd");
 
+            switchToDeleteMode = prop.getProperty("switch.to.delete.mode");
+            switchToUpdateCreatedTimeAndVerificationMode = prop.getProperty("switch.to.update.create.time.and" +
+                    ".verification.mode");
+
         } catch (Exception e) {
             System.out.println("Exception: " + e);
         } finally {
@@ -73,6 +79,16 @@ class ClientGetPropertiesValues {
 
     String getUserStoreName() {
         return userStoreName;
+    }
+
+    boolean isSwitchToDeleteModeEnabled() {
+
+        return Boolean.parseBoolean(switchToDeleteMode);
+    }
+
+    boolean isSwitchToUpdateCreatedTimeAndVerificationModeEnabled() {
+
+        return Boolean.parseBoolean(switchToUpdateCreatedTimeAndVerificationMode);
     }
 
     String getDefaultPassword() {

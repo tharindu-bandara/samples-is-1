@@ -111,32 +111,14 @@ public class BulkImportUsers {
                 byte[] content = newLine.getBytes();
                 DataHandler file = new DataHandler(new ByteArrayDataSource(content, "application/octet-stream"));
 
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(file.getInputStream(),
-                        StandardCharsets.UTF_8));
-                CSVReader csvReader = new CSVReader(bufferedReader, ',', '"', 1);
-
-                String[] userEntry = csvReader.readNext();
-                while (userEntry != null && userEntry.length > 0) {
-                    String userName = userEntry[0];
-                    if (userName != null && !userName.isEmpty()) {
-                        if (StringUtils.isNotEmpty(System.getProperty("switchToDeleteMode"))) {
-                            userName = System.getProperty("userStore") + "/" + userName;
-                        } else {
-                            userName = "PATRON/" + userName;
-                        }
-                        try {
-                            if (Boolean.parseBoolean(System.getProperty("switchToDeleteMode"))) {
-                                deleteUser(remoteUserStoreServiceAdminClient, userName);
-                            } else {
-                                updateAccountCreatedTimeAndValidateUser(remoteUserStoreServiceAdminClient, userName, userEntry);
-                            }
-                        } catch (UserAdminUserAdminException e) {
-                            e.printStackTrace();
-                            out.println("User where error occurred: \n" + line);
-                        }
-                    }
-                    userEntry = csvReader.readNext();
+                if (props.isSwitchToDeleteModeEnabled() || props.isSwitchToUpdateCreatedTimeAndVerificationModeEnabled()) {
+                    executeDeleteOrUpdateAndVerifyMode(userAdminClient, remoteUserStoreServiceAdminClient, line, fileName,
+                            userStoreName,
+                            defaultPassword, file, props);
+                } else {
+                    executeBulkUserImport(userAdminClient, line, fileName, userStoreName, defaultPassword, file);
                 }
+
                 out.println("User count : " + lines);
             }
         } catch (IOException e) {
@@ -162,6 +144,51 @@ public class BulkImportUsers {
         out.println("Update created time and users verification process finished");
 
         login.logOut();
+    }
+
+    private static void executeBulkUserImport(UserAdminClient userAdminClient, String line, String fileName,
+                                              String userStoreName, String defaultPassword, DataHandler file)
+            throws RemoteException {
+
+        try {
+            userAdminClient.BulkImportUsers(userStoreName, defaultPassword, file, fileName);
+        } catch (UserAdminUserAdminException e) {
+            e.printStackTrace();
+            out.println("User where error occurred: \n" + line);
+        }
+    }
+
+    private static void executeDeleteOrUpdateAndVerifyMode(UserAdminClient userAdminClient,
+                                                           RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient,
+                                                           String line, String fileName, String userStoreName,
+                                                           String defaultPassword, DataHandler file,
+                                                           ClientGetPropertiesValues props)
+            throws IOException {
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(file.getInputStream(),
+                StandardCharsets.UTF_8));
+        CSVReader csvReader = new CSVReader(bufferedReader, ',', '"', 1);
+
+        String[] userEntry = csvReader.readNext();
+        while (userEntry != null && userEntry.length > 0) {
+            String userName = userEntry[0];
+            if (userName != null && !userName.isEmpty()) {
+                userName = userStoreName + "/" + userName;
+                try {
+                    userAdminClient.BulkImportUsers(userStoreName, defaultPassword, file, fileName);
+
+                    if (props.isSwitchToDeleteModeEnabled()) {
+                        deleteUser(remoteUserStoreServiceAdminClient, userName);
+                    } else if (props.isSwitchToUpdateCreatedTimeAndVerificationModeEnabled()){
+                        updateAccountCreatedTimeAndValidateUser(remoteUserStoreServiceAdminClient, userName, userEntry);
+                    }
+                } catch (UserAdminUserAdminException e) {
+                    e.printStackTrace();
+                    out.println("User where error occurred: \n" + line);
+                }
+            }
+            userEntry = csvReader.readNext();
+        }
     }
 
     private static void deleteUser(RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient, String userName)
