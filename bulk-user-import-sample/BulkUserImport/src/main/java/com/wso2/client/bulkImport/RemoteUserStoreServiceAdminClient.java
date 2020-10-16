@@ -65,4 +65,16 @@ public class RemoteUserStoreServiceAdminClient {
 
         remoteUserStoreManagerServiceStub.deleteUser(username);
     }
+
+    public void deleteUsersInDomain(String userStoreDomain) throws RemoteException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+        String[] userList;
+        do {
+            userList = remoteUserStoreManagerServiceStub.listUsers(userStoreDomain + "/*", -1);
+            for (String user : userList) {
+                String username = user.startsWith(userStoreDomain + "/") ? user : userStoreDomain + "/" + user;
+                remoteUserStoreManagerServiceStub.deleteUser(username);
+            }
+        } while (userList != null && userList.length != 0);
+    }
 }

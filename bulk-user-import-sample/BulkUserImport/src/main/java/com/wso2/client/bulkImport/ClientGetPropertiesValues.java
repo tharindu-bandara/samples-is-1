@@ -37,6 +37,7 @@ class ClientGetPropertiesValues {
     private String authPwd = "";
     private String switchToDeleteMode = "";
     private String switchToUpdateCreatedTimeAndVerificationMode = "";
+    private String consumeWholeCSVAtOnce = "";
     private InputStream inputStream;
 
     ClientGetPropertiesValues() throws IOException {
@@ -64,6 +65,7 @@ class ClientGetPropertiesValues {
             authUser = prop.getProperty("auth.user");
             authPwd = prop.getProperty("auth.pwd");
 
+            consumeWholeCSVAtOnce = prop.getProperty("consume.whole.CSV.at.once");
             switchToDeleteMode = prop.getProperty("switch.to.delete.mode");
             switchToUpdateCreatedTimeAndVerificationMode = prop.getProperty("switch.to.update.create.time.and" +
                     ".verification.mode");
@@ -113,5 +115,10 @@ class ClientGetPropertiesValues {
 
     String getAuthPwd() {
         return authPwd;
+    }
+
+    boolean isConsumeWholeCSVAtOnceEnabled() {
+
+        return Boolean.parseBoolean(consumeWholeCSVAtOnce);
     }
 }
