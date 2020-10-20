@@ -73,7 +73,11 @@ public class RemoteUserStoreServiceAdminClient {
             userList = remoteUserStoreManagerServiceStub.listUsers(userStoreDomain + "/*", -1);
             for (String user : userList) {
                 String username = user.startsWith(userStoreDomain + "/") ? user : userStoreDomain + "/" + user;
-                remoteUserStoreManagerServiceStub.deleteUser(username);
+                try {
+                    remoteUserStoreManagerServiceStub.deleteUser(username);
+                } catch (Exception e) {
+                    // keep deleting users...
+                }
             }
         } while (userList != null && userList.length != 0);
     }
